@@ -4,17 +4,16 @@ export class BootScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('tiles', 'assets/tilesets/fantasy_tiles.png');
-    this.load.tilemapTiledJSON('overworld', 'assets/maps/overworld.json');
+    this.load.image('tiles', '/assets/tilesets/fantasy_tiles.png');
+    this.load.image('player', '/assets/sprites/player.png');
 
-    this.load.spritesheet('player', 'assets/sprites/player.png', {
-      frameWidth: 16,
-      frameHeight: 24
-    });
+    this.load.tilemapTiledJSON(
+      'overworld',
+      '/assets/maps/overworld.json'
+    );
   }
 
   create() {
     this.scene.start('OverworldScene');
-    this.scene.launch('UIScene');
   }
 }

@@ -1,5 +1,5 @@
+import Phaser from 'phaser';
 import { MovementController } from '../systems/MovementController.js';
-import { EncounterSystem } from '../systems/EncounterSystem.js';
 
 export class OverworldScene extends Phaser.Scene {
   constructor() {
@@ -7,45 +7,65 @@ export class OverworldScene extends Phaser.Scene {
   }
 
   create() {
+    // HARD RESET CAMERA STATE
+    const cam = this.cameras.main;
+    cam.stopFollow();
+    cam.setScroll(0, 0);
+    cam.setZoom(1);
+    cam.setRotation(0);
+    cam.setAlpha(1);
+    cam.setVisible(true);
+
+    // TILEMAP
     const map = this.make.tilemap({ key: 'overworld' });
+
     const tileset = map.addTilesetImage('fantasy', 'tiles');
+    const layer = map.createLayer('Ground', tileset, 0, 0);
 
-    map.createLayer('Ground', tileset);
-    this.collisionLayer = map.createLayer('Collision', tileset);
-    this.grassLayer = map.createLayer('Grass', tileset);
+    // 🔥 FORCE LAYER VISIBILITY
+    layer.setVisible(true);
+    layer.setAlpha(1);
+    layer.setDepth(0);
+    layer.setPosition(0, 0);
+    layer.setScrollFactor(0);   // screen-space render
+    layer.setPipeline('TextureTintPipeline');
 
-    this.collisionLayer.setCollisionByProperty({ collides: true });
+    // 🔥 FORCE TILE DATA RENDER
+    layer.layer.data.forEach(row => {
+      row.forEach(tile => {
+        if (tile) {
+          tile.setVisible(true);
+          tile.alpha = 1;
+        }
+      });
+    });
 
-    this.player = this.physics.add.sprite(64, 64, 'player', 0);
-    this.player.setSize(16, 16).setOffset(0, 8);
+    // DEBUG: draw bounding box over the layer
+    this.add.rectangle(
+      map.widthInPixels / 2,
+      map.heightInPixels / 2,
+      map.widthInPixels,
+      map.heightInPixels,
+      0x00ff00,
+      0.1
+    ).setDepth(10).setScrollFactor(0);
 
-    this.movement = new MovementController(
-      this.player,
-      map,
-      this.collisionLayer
-    );
+    // PLAYER
+    this.player = this.physics.add.sprite(160, 96, 'player');
+    this.player.setDepth(5);
 
+    this.movement = new MovementController(this.player, map);
     this.cursors = this.input.keyboard.createCursorKeys();
-    this.cameras.main.startFollow(this.player);
+
+    console.log('🟢 Layer forced visible');
   }
 
   update() {
-    if (this.movement.isMoving) return;
+    if (!this.movement || this.movement.isMoving) return;
 
-    if (Phaser.Input.Keyboard.JustDown(this.cursors.left)) this.tryMove(-1, 0);
-    if (Phaser.Input.Keyboard.JustDown(this.cursors.right)) this.tryMove(1, 0);
-    if (Phaser.Input.Keyboard.JustDown(this.cursors.up)) this.tryMove(0, -1);
-    if (Phaser.Input.Keyboard.JustDown(this.cursors.down)) this.tryMove(0, 1);
-  }
-
-  tryMove(dx, dy) {
-    if (!this.movement.canMove(dx, dy)) return;
-
-    this.movement.move(dx, dy, () => {
-      if (EncounterSystem.check(this.player, this.grassLayer)) {
-        this.scene.pause();
-        this.scene.launch('CombatScene');
-      }
-    });
+    if (Phaser.Input.Keyboard.JustDown(this.cursors.left)) this.movement.move(-1, 0);
+    if (Phaser.Input.Keyboard.JustDown(this.cursors.right)) this.movement.move(1, 0);
+    if (Phaser.Input.Keyboard.JustDown(this.cursors.up)) this.movement.move(0, -1);
+    if (Phaser.Input.Keyboard.JustDown(this.cursors.down)) this.movement.move(0, 1);
   }
 }

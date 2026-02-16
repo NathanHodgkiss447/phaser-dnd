@@ -1,29 +1,31 @@
 export class MovementController {
-  constructor(sprite, map, collisionLayer, tileSize = 16) {
+  constructor(sprite, map, tileSize = 16) {
     this.sprite = sprite;
     this.map = map;
-    this.collisionLayer = collisionLayer;
     this.tileSize = tileSize;
     this.isMoving = false;
   }
 
-  canMove(dx, dy) {
-    const x = this.sprite.x + dx * this.tileSize;
-    const y = this.sprite.y + dy * this.tileSize;
-    return !this.collisionLayer.getTileAtWorldXY(x, y);
-  }
+  move(dx, dy) {
+    if (this.isMoving) return;
 
-  move(dx, dy, onComplete) {
+    const targetX = this.sprite.x + dx * this.tileSize;
+    const targetY = this.sprite.y + dy * this.tileSize;
+
+    const tile = this.map.getTileAtWorldXY(targetX, targetY);
+
+    // Tile index 1 = water (blocked)
+    if (tile && tile.index === 1) return;
+
     this.isMoving = true;
 
     this.sprite.scene.tweens.add({
       targets: this.sprite,
-      x: this.sprite.x + dx * this.tileSize,
-      y: this.sprite.y + dy * this.tileSize,
+      x: targetX,
+      y: targetY,
       duration: 150,
       onComplete: () => {
         this.isMoving = false;
-        if (onComplete) onComplete();
       }
     });
   }
