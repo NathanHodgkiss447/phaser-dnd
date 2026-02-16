@@ -1,0 +1,22 @@
+{
+  "name": "phaser-dnd-rpg",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.21"
+  },
+  "description": "A web-based RPG built with Phaser that combines: - Pokémon-style overworld exploration - D&D-inspired turn-based combat - Pixel-art presentation - Initiative, dice rolls, and action economy",
+  "main": "vite.config.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
