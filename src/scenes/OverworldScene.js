@@ -6,6 +6,38 @@ export class OverworldScene extends Phaser.Scene {
     super('OverworldScene');
   }
 
+  isNearNPC() {
+  if (!this.npc) return false;
+  return Phaser.Math.Distance.Between(
+    this.player.x,
+    this.player.y,
+    this.npc.x,
+    this.npc.y
+  ) < 20;
+}
+
+showDialogue(text) {
+  if (this.dialogueText) return;
+
+  this.dialogueText = this.add.text(
+    16,
+    this.scale.height - 40,
+    text,
+    {
+      fontSize: '10px',
+      backgroundColor: '#000',
+      padding: { x: 6, y: 4 },
+      color: '#fff'
+    }
+  ).setScrollFactor(0).setDepth(10);
+
+  this.time.delayedCall(2000, () => {
+    this.dialogueText.destroy();
+    this.dialogueText = null;
+  });
+}
+
+
   create() {
     // HARD RESET CAMERA STATE
     const cam = this.cameras.main;
@@ -50,12 +82,30 @@ export class OverworldScene extends Phaser.Scene {
       0.1
     ).setDepth(10).setScrollFactor(0);
 
+    // --- NPC ---
+    this.npc = this.physics.add.sprite(
+      12 * 16 + 8,
+      6 * 16 + 12,
+      'npc'
+  );
+
+  this.npc.setOrigin(0.5, 1);
+  this.npc.setImmovable(true);
+  this.npc.body.moves = false;
+  this.npc.setDepth(5);
+
+
     // PLAYER
     this.player = this.physics.add.sprite(160, 96, 'player');
-    this.player.setDepth(5);
+    this.player.setDepth(10);
 
     this.movement = new MovementController(this.player, map);
     this.cursors = this.input.keyboard.createCursorKeys();
+
+    this.interactKey = this.input.keyboard.addKey(
+    Phaser.Input.Keyboard.KeyCodes.SPACE
+);
+
 
     console.log('🟢 Layer forced visible');
   }
@@ -67,5 +117,13 @@ export class OverworldScene extends Phaser.Scene {
     if (Phaser.Input.Keyboard.JustDown(this.cursors.right)) this.movement.move(1, 0);
     if (Phaser.Input.Keyboard.JustDown(this.cursors.up)) this.movement.move(0, -1);
     if (Phaser.Input.Keyboard.JustDown(this.cursors.down)) this.movement.move(0, 1);
+
+    if (
+    Phaser.Input.Keyboard.JustDown(this.interactKey) &&
+    this.isNearNPC()
+  ) {
+    this.showDialogue("Oi! Cuidado com o mar hoje.");
+  }
+
   }
 }
